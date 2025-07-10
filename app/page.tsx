@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import SvgIcon from "@/comp/RIngIcon";
-import MainContent from "@/comp/MainContent";
+import MainContent, { parisienne } from "@/comp/MainContent";
 
 export default function Home() {
   // User hasn't clicked "Play Invitation" yet?
@@ -63,7 +63,7 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 1.5, ease: "easeInOut" }}
-                className="mt-4 uppercase tracking-widest"
+                className={`${parisienne.className} text-6xl mt-4  tracking-widest`}
               >
                 Patience is a virtue
               </motion.p>
