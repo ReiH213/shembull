@@ -65,7 +65,7 @@ export default function Home() {
                 transition={{ duration: 1.5, ease: "easeInOut" }}
                 className={`${parisienne.className} text-6xl mt-4  tracking-widest`}
               >
-                Patience is a virtue
+                Durimi është Virtyt
               </motion.p>
               <motion.button
                 initial={{ opacity: 0 }}
@@ -74,7 +74,7 @@ export default function Home() {
                 onClick={() => setStarted(true)}
                 className="mt-6 px-6 py-2 bg-white text-black rounded-full uppercase tracking-wide hover:bg-gray-200"
               >
-                Play Invitation
+                Hap Ftesen
               </motion.button>
             </div>
           )}
