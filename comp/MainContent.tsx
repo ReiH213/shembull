@@ -1,9 +1,8 @@
 // comp/MainContent.tsx
-import { motion, AnimatePresence } from "framer-motion";
-import { Parisienne } from "next/font/google";
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { Marcellus, Parisienne } from "next/font/google";
 import Image from "next/image";
 import React, { useEffect, useRef, useState, useLayoutEffect } from "react";
-import SvgIcon from "./FlowerIcon";
 import { CheckCircle2, MapPin, Info, Loader2, ChevronDown } from "lucide-react";
 
 type InvitePhase =
@@ -21,24 +20,64 @@ export const parisienne = Parisienne({
   weight: "400",
   display: "swap",
 });
+export const marcellus = Marcellus({
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
 
 type MainContentProps = {
   onWelcomeStart: () => void;
 };
 
-// Initial image sequence and delays
-const images = [
-  { src: "/images/1.jpeg", delay: 16.7 },
-  { src: "/images/2.jpeg", delay: 17.3 },
-  { src: "/images/3.jpeg", delay: 18.6 },
-  { src: "/images/4.jpeg", delay: 20.0 },
-  { src: "/images/5.jpeg", delay: 22.0 },
-  { src: "/images/6.jpeg", delay: 22.7 },
-  { src: "/images/7.jpeg", delay: 24.0 },
-  { src: "/images/8.jpeg", delay: 25.3 },
+type Milestone = {
+  src: string;
+  delay: number;
+  title: string;
+  date?: string;
+};
+
+const milestones: Milestone[] = [
+  {
+    src: "/images/1.jpeg",
+    delay: 16.7,
+    title: "We met & fell in love",
+    date: "10.07.2017",
+  },
+  {
+    src: "/images/2.jpeg",
+    delay: 17.3,
+    title: "Adventure time (lots of fishing!)",
+    date: "07.07.2018",
+  },
+  {
+    src: "/images/3.jpeg",
+    delay: 18.6,
+    title: "We proclaimed our love for the Lord together!",
+    date: "12.21.2019",
+  },
+  {
+    src: "/images/4.jpeg",
+    delay: 20.0,
+    title: "We moved to AZ & adopted Goosey",
+    date: "08.24.2020",
+  },
+  {
+    src: "/images/5.jpeg",
+    delay: 22.0,
+    title: "We got engaged!",
+    date: "01.24.2023",
+  },
+  { src: "/images/6.jpeg", delay: 22.7, title: "More memories...", date: "" },
+  { src: "/images/7.jpeg", delay: 24.0, title: "And more love", date: "" },
+  {
+    src: "/images/8.jpeg",
+    delay: 25.3,
+    title: "…which brought us here",
+    date: "",
+  },
 ];
 
-// Text reveal parts and delays
 const textParts = [
   { text: "And Everything", delay: 27.3 },
   { text: "Brought ", delay: 28.2 },
@@ -46,7 +85,6 @@ const textParts = [
   { text: "To this Day", delay: 30.4 },
 ];
 
-// Final images and delays
 const finalImages = [
   { src: "/images/9.jpeg", delay: 32.0, y: -100, x: -100 },
   { src: "/images/10.jpeg", delay: 33.0, y: -100, x: 100 },
@@ -55,18 +93,20 @@ const finalImages = [
 ];
 
 export default function MainContent({ onWelcomeStart }: MainContentProps) {
-  const gridRef = useRef<HTMLDivElement>(null);
   const inviteRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const imgRefs = useRef<HTMLDivElement[]>([]);
   const finalRefs = useRef<HTMLDivElement[]>([]);
+  const timelineRef = useRef<HTMLDivElement>(null);
+
   const [started, setStarted] = useState(false);
-  const [showFlowers, setShowFlowers] = useState(false);
+  const [showFlowers, setShowFlowers] = useState(false); // still here if you ever use it
   const [invitePhase, setInvitePhase] = useState<InvitePhase>("idle");
   type Panel = "attend" | "location" | "info" | null;
 
   const [openPanel, setOpenPanel] = useState<Panel>(null);
   const [showActions, setShowActions] = useState(false);
+
   type RsvpPayload = {
     first: string;
     last: string;
@@ -80,68 +120,45 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
     attending: true,
     response: "accept",
   });
-  const [segments, setSegments] = useState<
-    {
-      x: number;
-      y: number;
-      length: number;
-      angle: number;
-      delay: number;
-    }[]
-  >([]);
 
-  const ICON_SIZE = 54;
+  const lineControls = useAnimation();
+  const [lineHeight, setLineHeight] = useState(0);
+
   const lettersInDone = useRef(0);
-  // count how many letters finished "out"
-  const lettersOutDone = useRef(0);
+
   const handleWelcomeStart = () => {
     onWelcomeStart();
     setStarted(true);
   };
 
-  // Compute branch segments once initial images are in place
+  // Measure timeline height once it renders
   useLayoutEffect(() => {
-    if (!started || !gridRef.current) return;
-    const rect = gridRef.current.getBoundingClientRect();
-    const segs: typeof segments = [];
-    images.slice(1).forEach((_, i) => {
-      const el1 = imgRefs.current[i];
-      const el2 = imgRefs.current[i + 1];
-      if (el1 && el2) {
-        const r1 = el1.getBoundingClientRect();
-        const r2 = el2.getBoundingClientRect();
-        const x1 = r1.left + r1.width / 2 - rect.left;
-        const y1 = r1.top + r1.height / 2 - rect.top;
-        const x2 = r2.left + r2.width / 2 - rect.left;
-        const y2 = r2.top + r2.height / 2 - rect.top;
-        const dx = x2 - x1;
-        const dy = y2 - y1;
-        const length = Math.hypot(dx, dy);
-        const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-        segs.push({ x: x1, y: y1, length, angle, delay: images[i + 1].delay });
-      }
-    });
-    setSegments(segs);
+    if (timelineRef.current) {
+      setLineHeight(timelineRef.current.scrollHeight);
+    }
   }, [started]);
 
-  // Auto-scroll through initial images, text, then final images
+  // Auto-scroll sequence
   useEffect(() => {
     if (!started) return;
-    // Initial images
-    images.forEach((img, i) => {
+
+    // milestones
+    milestones.forEach((m, i) => {
       setTimeout(() => {
         imgRefs.current[i]?.scrollIntoView({
           behavior: "smooth",
           block: "center",
         });
-      }, img.delay * 1000);
+      }, m.delay * 1000);
     });
-    // Scroll to text after last initial image
-    const textTime = images[images.length - 1].delay * 1000 + 500;
+
+    // text section
+    const textTime = milestones[milestones.length - 1].delay * 1000 + 500;
     setTimeout(() => {
       textRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
     }, textTime);
-    // Final images
+
+    // final images
     finalImages.forEach((img, i) => {
       setTimeout(() => {
         finalRefs.current[i]?.scrollIntoView({
@@ -150,6 +167,8 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
         });
       }, img.delay * 1000);
     });
+
+    // invite
     const inviteTime = finalImages[finalImages.length - 1].delay * 1000 + 500;
     setTimeout(() => {
       inviteRef.current?.scrollIntoView({
@@ -158,49 +177,38 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
       });
       setInvitePhase("lettersIn");
       setTimeout(() => {
-        // safety: if we’re still in lettersIn after ~2s, advance anyway
         setInvitePhase((p) => (p === "lettersIn" ? "lettersHold" : p));
       }, 2000);
     }, inviteTime);
   }, [started]);
 
-  const pathRef = useRef<SVGPathElement>(null);
-  const [len, setLen] = useState(0);
+  // Grow the vertical line with same delays
+  useEffect(() => {
+    if (!started) return;
+    milestones.forEach((m, i) => {
+      const pct = (i + 1) / milestones.length;
+      setTimeout(() => {
+        lineControls.start({
+          scaleY: pct,
+          transition: { duration: 0.5, ease: "easeInOut" },
+        });
+      }, m.delay * 1000);
+    });
+  }, [started, lineControls]);
 
-  const advanceAfter = (ms: number, next: InvitePhase) => {
-    setTimeout(() => setInvitePhase(next), ms);
-  };
-
-  // Called when a letter finishes its "in" anim:
-  const handleLetterInComplete = () => {
-    lettersInDone.current += 1;
-    if (lettersInDone.current === 3) {
-      // all letters visible; brief hold so user registers seal
-      setInvitePhase("lettersHold");
-    }
-  };
-
-  // Called when a letter finishes its "out" anim:
-  useLayoutEffect(() => {
-    if (pathRef.current) {
-      setLen(pathRef.current.getTotalLength());
-    }
-  }, []);
-
+  // Letters phase transitions
   useEffect(() => {
     if (invitePhase !== "lettersHold") return;
     const t = setTimeout(() => setInvitePhase("lettersOut"), 600);
     return () => clearTimeout(t);
   }, [invitePhase]);
 
-  // lettersOut → envelopeIn
   useEffect(() => {
     if (invitePhase !== "lettersOut") return;
     const t = setTimeout(() => setInvitePhase("envelopeIn"), 800);
     return () => clearTimeout(t);
   }, [invitePhase]);
 
-  // envelopeIn → envelopeOpen
   useEffect(() => {
     if (invitePhase !== "envelopeIn") return;
     const t = setTimeout(() => setInvitePhase("envelopeOpen"), 1000);
@@ -212,8 +220,14 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
     const t = setTimeout(() => setInvitePhase("envelopeDrop"), 1500);
     return () => clearTimeout(t);
   }, [invitePhase]);
+
+  const handleLetterInComplete = () => {
+    lettersInDone.current += 1;
+    if (lettersInDone.current === 3) setInvitePhase("lettersHold");
+  };
+
   return (
-    <section className="relative p-8 bg-white text-black min-h-screen">
+    <section className="relative p-8 bg-[#faeadf] bg-noise text-black min-h-screen">
       {/* Intro headings */}
       <div className="flex flex-col items-center gap-8">
         <motion.h1
@@ -243,64 +257,135 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
         </motion.h2>
       </div>
 
-      {/* Initial image grid and branch animations */}
+      {/* ======== VERTICAL TIMELINE ======== */}
       <div
-        ref={gridRef}
-        className="relative mt-16 mx-auto w-full max-w-6xl grid grid-cols-2 gap-y-34 gap-x-34"
+        ref={timelineRef}
+        className="relative mt-16 mx-auto w-full max-w-6xl"
       >
-        {segments.map((seg, i) => (
-          <motion.div
-            key={i}
-            initial={{ width: 0 }}
-            animate={{ width: seg.length }}
-            transition={{ delay: seg.delay, duration: 0.8, ease: "easeInOut" }}
-            className="absolute flex overflow-hidden origin-left"
-            style={{
-              top: seg.y - ICON_SIZE / 2,
-              left: seg.x - ICON_SIZE / 2,
-              height: ICON_SIZE,
-              transform: `rotate(${seg.angle}deg)`,
-              transformOrigin: "0 50%",
-            }}
-          >
-            {Array.from({ length: Math.ceil(seg.length / ICON_SIZE) }).map(
-              (_, j) => (
-                <SvgIcon
-                  key={j}
-                  width={ICON_SIZE}
-                  height={ICON_SIZE}
-                  className={`flex-none text-rose-400 ${
-                    j % 2 ? "rotate-210" : "rotate-40"
-                  }`}
-                />
-              )
-            )}
-          </motion.div>
-        ))}
-        {images.map((img, idx) => (
-          <motion.div
-            key={idx}
-            ref={(el) => {
-              if (el) imgRefs.current[idx] = el;
-            }}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ ease: "easeInOut", duration: 0.8, delay: img.delay }}
-            className="relative w-[546px] h-[546px] rounded-lg overflow-hidden shadow-2xl"
-            style={{
-              gridColumnStart: idx % 2 === 0 ? 1 : 2,
-              gridRowStart: idx + 1,
-            }}
-          >
-            <Image
-              src={img.src}
-              alt={`Invitation image ${idx + 1}`}
-              fill
-              className="object-cover"
-            />
-          </motion.div>
-        ))}
+        {/* central growing line */}
+        <motion.div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[3px] bg-black/70 origin-top"
+          style={{ height: lineHeight || "100%" }}
+          initial={{ scaleY: 0 }}
+          animate={lineControls}
+        />
+
+        {milestones.map((m, idx) => {
+          const leftImage = idx % 2 === 0; // alternate sides
+          return (
+            <div
+              key={idx}
+              ref={(el) => {
+                if (el) imgRefs.current[idx] = el;
+              }}
+              className="relative grid grid-cols-[1fr_40px_1fr] gap-x-10 items-center min-h-[520px] md:min-h-[560px]"
+            >
+              {/* LEFT CELL */}
+              <div className="flex justify-end pr-4">
+                {leftImage ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{
+                      delay: m.delay,
+                      duration: 0.8,
+                      ease: "easeInOut",
+                    }}
+                    className="relative w-[340px] h-[420px] rounded-lg overflow-hidden shadow-2xl"
+                  >
+                    <Image
+                      src={m.src}
+                      alt={`milestone ${idx + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      delay: m.delay + 0.1,
+                      duration: 0.6,
+                      ease: "easeOut",
+                    }}
+                    className="text-right flex flex-col gap-2 max-w-[320px]"
+                  >
+                    {m.date && (
+                      <span
+                        className={`${marcellus.className} text-sm tracking-wide`}
+                      >
+                        {m.date}
+                      </span>
+                    )}
+                    <span
+                      className={`${marcellus.className} text-lg leading-snug`}
+                    >
+                      {m.title}
+                    </span>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* CENTER DOT */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: m.delay, duration: 0.35, ease: "easeOut" }}
+                className="relative justify-self-center w-5 h-5 bg-white border-2 border-gray-600 rounded-full z-10 shadow"
+              />
+
+              {/* RIGHT CELL */}
+              <div className="flex justify-start pl-4">
+                {!leftImage ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{
+                      delay: m.delay,
+                      duration: 0.8,
+                      ease: "easeInOut",
+                    }}
+                    className="relative w-[340px] h-[420px] rounded-lg overflow-hidden shadow-2xl"
+                  >
+                    <Image
+                      src={m.src}
+                      alt={`milestone ${idx + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      delay: m.delay + 0.1,
+                      duration: 0.6,
+                      ease: "easeOut",
+                    }}
+                    className="text-left flex flex-col gap-2 max-w-[320px]"
+                  >
+                    {m.date && (
+                      <span
+                        className={`${marcellus.className} text-sm tracking-wide`}
+                      >
+                        {m.date}
+                      </span>
+                    )}
+                    <span
+                      className={`${marcellus.className} text-lg leading-snug`}
+                    >
+                      {m.title}
+                    </span>
+                  </motion.div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
+      {/* ======== /VERTICAL TIMELINE ======== */}
 
       {/* Text reveal section */}
       <div
@@ -347,6 +432,8 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
           </motion.div>
         ))}
       </div>
+
+      {/* INVITE SECTION (unchanged) */}
       <div
         ref={inviteRef}
         className="w-full h-screen relative flex flex-col min-h-screen items-center justify-center mt-62"
@@ -429,11 +516,10 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
               >
                 {/* left triangle */}
                 <div className="absolute top-0 left-0 w-0 h-0 border-t-[170px] border-t-transparent  border-r-[230px] border-r-[#A4D4F2] border-b-[170px] border-b-transparent rotate-y-180" />
-                {/* <div className="absolute top-0 left-0 w-0 h-0 border-t-[170px] border-t-transparent  border-r-[230px] border-r-[#C4DFF0] border-b-[170px] border-b-[#C4DFF0] rotate-y-180" /> */}
 
                 {/* right triangle */}
                 <div className="absolute top-0 right-0 w-0 h-0 border-t-[170px] border-t-transparent border-l-[230px] border-l-[#A4D4F2] border-b-[170px] border-b-transparent rotate-y-180" />
-                {/* <div className="absolute bottom-0 right-0 w-0 h-0 border-t-[170px] border-t-transparent border-l-[230px] border-l-[#A4D4F2] border-b-[170px] border-b-[#A4D4F2] rotate-y-180" /> */}
+
                 <div
                   className="absolute bottom-10 left-0 right-0 h-[170px] bg-[#C4DFF0]"
                   style={{
@@ -447,9 +533,9 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
 
               <motion.div
                 className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[90%] max-w-[560px] h-[780px] bg-white rounded-md shadow-xl z-20 overflow-hidden"
-                style={{ clipPath: "inset(0 49px 0 0)" }} // ← cut 32px from the RIGHT
+                style={{ clipPath: "inset(0 49px 0 0)" }}
                 initial={{ y: 220, opacity: 0, scale: 0.95 }}
-                animate={{ y: -150, opacity: 1, scale: 1 }}
+                animate={{ y: -50, opacity: 1, scale: 1 }}
                 transition={{ delay: 1.1, duration: 1.1, ease: "easeInOut" }}
                 onAnimationComplete={() => setShowActions(true)}
               >
@@ -465,7 +551,7 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
               <motion.div
                 className="absolute w-full h-full z-30"
                 initial={{ rotateX: 0, opacity: 1 }}
-                animate={{ rotateX: -180, opacity: 0 }} //  <-- was 180, make it -180
+                animate={{ rotateX: -180, opacity: 0 }}
                 transition={{ delay: 0.5, duration: 0.8, ease: "easeInOut" }}
                 style={{
                   transformOrigin: "top center",
@@ -479,14 +565,14 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
             </motion.div>
           )}
         </AnimatePresence>
+
         {showActions && (
           <motion.div
-            className="w-full max-w-xl mx-auto mt-12 px-4 "
+            className="w-full max-w-xl mx-auto  px-4 "
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            {/* BUTTON ROW */}
             <div className="flex flex-row gap-3 justify-center">
               <ActionButton
                 label="Konfirmo Pjesemarrjen"
@@ -496,7 +582,6 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
                   setOpenPanel(openPanel === "attend" ? null : "attend")
                 }
               />
-
               <ActionButton
                 label="Adresa"
                 Icon={MapPin}
@@ -505,7 +590,6 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
                   setOpenPanel(openPanel === "location" ? null : "location")
                 }
               />
-
               <ActionButton
                 label="Historia Jone"
                 Icon={Info}
@@ -618,7 +702,6 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
 
             <Accordion open={openPanel === "location"}>
               <div className="pt-4">
-                {/* Replace the src with your real Google Maps embed URL */}
                 <div className="aspect-video w-full rounded-md overflow-hidden shadow">
                   <iframe
                     className="w-full h-full"

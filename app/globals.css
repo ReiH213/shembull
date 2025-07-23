@@ -24,3 +24,45 @@ body {
   color: var(----background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.bg-paper {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 0),
+    radial-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 0),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9));
+  background-size: 4px 4px, 2px 2px, auto;
+  background-position: 0 0, 1px 1px, 0 0;
+}
+.bg-watercolor {
+  background: linear-gradient(180deg, #fff 0%, #fff7f9 100%);
+}
+
+@keyframes floatSparkle {
+  0% {
+    transform: translateY(0) scale(0.7) rotate(0deg);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-30px) scale(1) rotate(10deg);
+  }
+  100% {
+    transform: translateY(-60px) scale(0.7) rotate(-5deg);
+    opacity: 0;
+  }
+}
+.sparkle {
+  animation: floatSparkle 6s ease-in-out infinite;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+bg-noise {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background-image: url("/textures/noise.png");
+  opacity: 0.06;
+  mix-blend-mode: multiply;
+}
