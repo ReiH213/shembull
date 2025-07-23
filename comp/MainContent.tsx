@@ -77,7 +77,7 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
   const [form, setForm] = useState<RsvpPayload>({
     first: "",
     last: "",
-    attending: false,
+    attending: true,
     response: "accept",
   });
   const [segments, setSegments] = useState<
@@ -365,9 +365,9 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
             >
               <motion.span
                 className={`${parisienne.className} text-7xl absolute`}
-                initial={{ opacity: 0, scale: 4 }}
+                initial={{ opacity: 0, scale: 10, x: -150, y: -80 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, x: -300 }}
+                exit={{ opacity: 0, x: -500 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 onAnimationComplete={handleLetterInComplete}
               >
@@ -384,9 +384,9 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
               </motion.span>
               <motion.span
                 className={`${parisienne.className} text-7xl absolute`}
-                initial={{ opacity: 0, scale: 4 }}
+                initial={{ opacity: 0, scale: 10, x: 150, y: 80 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, x: 300 }}
+                exit={{ opacity: 0, x: 500 }}
                 transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
               >
                 A
@@ -408,29 +408,45 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
               style={{
-                width: "min(100%, 460px)",
-                height: "340px",
+                width: "min(100%, 620px)",
+                height: "380px",
                 perspective: 1000,
                 transformStyle: "preserve-3d",
               }}
             >
               {/* CLIPPED ENVELOPE CONTAINER */}
-              <div
-                className={`absolute inset-0 z-25 pointer-events-none ${
-                  invitePhase === "envelopeDrop" ? "opacity-0" : "opacity-100"
-                } transition-all ease-in-out duration-100`}
+              <motion.div
+                className="absolute inset-0 z-25 pointer-events-none"
+                initial={{ opacity: 1 }}
+                animate={{
+                  opacity:
+                    invitePhase === "envelopeOpen" ||
+                    invitePhase === "envelopeDrop"
+                      ? 0
+                      : 1,
+                }}
+                transition={{ duration: 0.4, ease: "easeInOut", delay: 1.1 }}
               >
                 {/* left triangle */}
-                <div className="absolute top-0 left-0 w-0 h-0 border-t-[170px] border-t-transparent  border-r-[230px] border-r-[#C4DFF0] border-b-[170px] border-b-transparent rotate-y-180" />
-                <div className="absolute top-0 left-0 w-0 h-0 border-t-[170px] border-t-transparent  border-r-[230px] border-r-[#C4DFF0] border-b-[170px] border-b-[#C4DFF0] rotate-y-180" />
+                <div className="absolute top-0 left-0 w-0 h-0 border-t-[170px] border-t-transparent  border-r-[230px] border-r-[#A4D4F2] border-b-[170px] border-b-transparent rotate-y-180" />
+                {/* <div className="absolute top-0 left-0 w-0 h-0 border-t-[170px] border-t-transparent  border-r-[230px] border-r-[#C4DFF0] border-b-[170px] border-b-[#C4DFF0] rotate-y-180" /> */}
 
                 {/* right triangle */}
                 <div className="absolute top-0 right-0 w-0 h-0 border-t-[170px] border-t-transparent border-l-[230px] border-l-[#A4D4F2] border-b-[170px] border-b-transparent rotate-y-180" />
-                <div className="absolute bottom-0 right-0 w-0 h-0 border-t-[170px] border-t-transparent border-l-[230px] border-l-[#A4D4F2] border-b-[170px] border-b-[#A4D4F2] rotate-y-180" />
-              </div>
+                {/* <div className="absolute bottom-0 right-0 w-0 h-0 border-t-[170px] border-t-transparent border-l-[230px] border-l-[#A4D4F2] border-b-[170px] border-b-[#A4D4F2] rotate-y-180" /> */}
+                <div
+                  className="absolute bottom-10 left-0 right-0 h-[170px] bg-[#C4DFF0]"
+                  style={{
+                    clipPath:
+                      "polygon(0% 100%, 230px 0%, calc(100% - 230px) 0%, 100% 100%)",
+                    WebkitClipPath:
+                      "polygon(0% 100%, 230px 0%, calc(100% - 230px) 0%, 100% 100%)",
+                  }}
+                />
+              </motion.div>
 
               <motion.div
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 h-full min-h-[820px] min-w-[582px] bg-white rounded-md shadow-xl z-20 overflow-hidden"
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[90%] max-w-[560px] h-[780px] bg-white rounded-md shadow-xl z-20 overflow-hidden"
                 style={{ clipPath: "inset(0 49px 0 0)" }} // ← cut 32px from the RIGHT
                 initial={{ y: 220, opacity: 0, scale: 0.95 }}
                 animate={{ y: -150, opacity: 1, scale: 1 }}
@@ -457,6 +473,7 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
                   clipPath: "polygon(0 0, 100% 0, 50% 70%)",
                   backfaceVisibility: "hidden",
                   transformStyle: "preserve-3d",
+                  willChange: "transform, opacity",
                 }}
               />
             </motion.div>

@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
   await transporter.sendMail({
     from: `"Wedding RSVP" <${process.env.RSVP_FROM}>`,
-    to: "haxhirajrei13@gmail.com",
+    to: "haxhirajpaliantia@gmail.com",
     subject: `RSVP - ${first} ${last}`,
     text,
     html,
