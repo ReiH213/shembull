@@ -235,7 +235,7 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ ease: "easeInOut", duration: 2 }}
           onAnimationStart={handleWelcomeStart}
-          className={`${parisienne.className} text-[90px]`}
+          className={`${marcellus.className} text-[90px]`}
         >
           Welcome!
         </motion.h1>
@@ -243,7 +243,7 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ ease: "easeInOut", duration: 2, delay: 5 }}
-          className={`${parisienne.className} text-[85px] text-center  flex flex-col`}
+          className={`${marcellus.className} text-[85px] text-center  flex flex-col`}
         >
           To the start of our new Journey<span>By Meti and Antia</span>
         </motion.h2>
@@ -251,7 +251,7 @@ export default function MainContent({ onWelcomeStart }: MainContentProps) {
           initial={{ opacity: 0, scale: 0 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ ease: "easeInOut", duration: 2, delay: 10 }}
-          className={`${parisienne.className} text-[85px]`}
+          className={`${marcellus.className} text-[85px]`}
         >
           But first let's go back to the beginning...
         </motion.h2>
